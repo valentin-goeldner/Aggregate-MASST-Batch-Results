@@ -10,16 +10,16 @@ from collections import defaultdict
 # ========================== #
 
 # 1. Path to your original MGF input file.
-MGF_FILE_PATH = r"Y:/Data/goeldnerv97/Research/Spectral Library Building/Applications/MASST_Search/20260416_natural_products/20260520_natural_products_curated_parents_pos.mgf"
+MGF_FILE_PATH = r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_Contaminants\20250917+18_EC_library_merged_pos_20260415.mgf"
 
 # 2. Path to the folder where all your output files were saved.
-OUTPUT_FOLDER_PATH = r"Y:/Data/goeldnerv97/Research/Spectral Library Building/Applications/MASST_Search/20260416_natural_products/output"
+OUTPUT_FOLDER_PATH = r"Y:/Data/goeldnerv97/Research/Spectral Library Building/Applications/MASST_Search/20260416_Contaminants/output"
 
 # 3. The "Output Prefix" string you used in jobs.py.
-OUTPUT_PREFIX = ""
+OUTPUT_PREFIX = "pos"
 
 # 4. Name of the final summary CSV file to be created.
-OUTPUT_CSV_PATH = r"Y:/Data/goeldnerv97/Research/Spectral Library Building/Applications/MASST_Search/20260416_natural_products/dataset_summary_unique_compounds.csv"
+OUTPUT_CSV_PATH = r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_Contaminants\dataset_summary_unique_compounds_pos.csv"
 
 # 5. Precision for rounding the exact mass to group similar compounds.
 MASS_PRECISION = 3

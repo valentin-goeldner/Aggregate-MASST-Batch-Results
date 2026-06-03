@@ -8,7 +8,7 @@ import pandas as pd
 
 # 1. Path to the input CSV file you want to separate.
 #    This should be one of the summary files we created earlier.
-INPUT_CSV_PATH = r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_natural_products\dataset_summary_unique_compounds.csv"
+INPUT_CSV_PATH = r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_Contaminants\dataset_summary_unique_compounds_pos.csv"
 
 # 2. The column to check for the "_ETP_" string.
 #    This should almost always be 'Compound Name'.
