@@ -1,9 +1,10 @@
-# MASST Results Aggregator and Post-Processor
+# MASST Results Post-Processing Suite
 
-This project contains a two-step Python workflow for processing results from a [MASST](https://github.com/mwang87/MASST) search.
+This project contains a suite of Python scripts for processing and analyzing results from a [MASST](https://github.com/mwang87/MASST) search.
 
-1.  **`aggregate_MASST_batch_results.py`**: Aggregates the many individual MASST output files into a single summary CSV file.
-2.  **`separate_by_string.py`**: (Optional) Takes the summary CSV and splits it into two files based on a specific string in a column (e.g., separating parent compounds from transformation products).
+1.  **`aggregate_results.py`**: A basic aggregator that counts the number of unique datasets and library spectra matched for each compound.
+2.  **`summarize_pan_redu.py`**: An advanced aggregator that maps MASST matches against the Pan-ReDu database to profile the sample types (e.g., plant, animal, microbial) where each compound was found.
+3.  **`separate_by_string.py`**: A general utility to split any of the generated summary CSV files based on a string in a column (e.g., separating parent compounds from transformation products).
 
 ## Requirements
 
@@ -18,77 +19,74 @@ pip install -r requirements.txt
 
 ## Recommended Directory Structure
 
-For the scripts to work seamlessly, a consistent directory structure is recommended:
+A consistent project structure is recommended for the scripts to work seamlessly.
 
 ```
 /path/to/your/project_folder/
 ├── library_pos_mode.mgf          <-- Your MGF file
 ├── output/                       <-- Folder with all MASST output files
 │   ├── pos_1_..._datasets.tsv
+│   ├── pos_1_..._matches.tsv
 │   └── ...
 ├── aggregate_results.py          <-- Script 1
-├── separate_by_string.py         <-- Script 2
+├── summarize_pan_redu.py         <-- Script 2
+├── separate_by_string.py         <-- Script 3
 └── requirements.txt
 ```
 
 ## Usage Workflow
 
-Follow these steps to process your MASST results.
+The scripts are designed to be run after editing their respective `USER CONFIGURATION` sections.
 
-### Step 1: Aggregate MASST Results
+### Tool 1: Basic Aggregation (`aggregate_results.py`)
 
-First, use `aggregate_MASST_batch_results.py` to create a master summary of your search.
+This script provides a high-level summary of MASST hits. It parses `_datasets.tsv` and `_library.tsv` files.
 
 #### Configuration
-
-Open `aggregate_MASST_batch_results.py` and edit the `USER CONFIGURATION` section at the top to match your project details.
-
+Open `aggregate_results.py` and edit its configuration section.
 ```python
 # --- USER CONFIGURATION --- #
 PROJECT_DIRECTORY = r"C:\path\to\your\project_folder"
 MGF_FILENAME = "library_pos_mode.mgf"
-OUTPUT_SUBDIR = "output"
-OUTPUT_PREFIX = "pos"
-SUMMARY_FILENAME = "summary_masst_pos.csv"
-MASS_PRECISION = 3
+# ... and other settings ...
 ```
+#### Run
+Run the script from your IDE or terminal: `python aggregate_results.py`
 
-#### Run the Script
+---
 
-After saving your configuration, run the script from your IDE (e.g., PyCharm's "Run" button) or from the terminal:
+### Tool 2: Pan-ReDu Metadata Summary (`summarize_pan_redu.py`)
 
-```bash
-python aggregate_MASST_batch_results.py
-```
-
-This will produce a summary file (e.g., `summary_masst_pos.csv`) in your project directory.
-
-### Step 2: Separate Compounds (Optional)
-
-If your compound names contain tags (e.g., `_ETP_` for Expected Transformation Products) and you wish to separate them from parent compounds, use `separate_by_string.py`.
+This script provides a detailed profile of where your compounds are found across different biological and environmental sample types. **It specifically uses the `_matches.tsv` files.**
 
 #### Configuration
-
-Open `separate_by_string.py` and edit its `USER CONFIGURATION` section. **Ensure `INPUT_CSV_FILENAME` matches the `SUMMARY_FILENAME` from Step 1.**
-
+Open `summarize_pan_redu.py` and edit its configuration. You must provide a path to the Pan-ReDu database file (`all_sampleinformation.tsv`).
 ```python
 # --- USER CONFIGURATION --- #
 PROJECT_DIRECTORY = r"C:\path\to\your\project_folder"
-INPUT_CSV_FILENAME = "summary_masst_pos.csv"
+MGF_FILENAME = "library_pos_mode.mgf"
+PAN_REDU_DB_PATH = r"D:\Databases\ReDu\all_sampleinformation.tsv"
+# ... and other settings ...
+```
+#### Run
+Run the script from your IDE or terminal: `python summarize_pan_redu.py`
+
+---
+
+### Tool 3: Splitting CSV by String (`separate_by_string.py`)
+
+This is a general utility script that can be run on the output CSV from **either** of the tools above. It is useful for separating entries based on tags in their names, like `_ETP_` for transformation products.
+
+#### Configuration
+Open `separate_by_string.py` and edit its configuration. **Ensure `INPUT_CSV_FILENAME` matches the output file you want to split.**
+```python
+# --- USER CONFIGURATION --- #
+PROJECT_DIRECTORY = r"C:\path\to\your\project_folder"
+INPUT_CSV_FILENAME = "summary_masst_pos.csv" # Or "Pan_ReDU_metadata_summary_pos.csv"
 COLUMN_TO_CHECK = 'Compound Name'
 SEARCH_STRING = "_ETP_"
 ```
+#### Run
+Run the script from your IDE or terminal: `python separate_by_string.py`
 
-#### Run the Script
-
-Run the second script in the same way you ran the first one:
-
-```bash
-python separate_by_string.py
-```
-
-#### Output
-
-This will create two new files in your project directory:
-1.  `summary_masst_pos_ETP.csv`: Contains only the rows where the `Compound Name` included `_ETP_`.
-2.  `summary_masst_pos_parents.csv`: Contains all other rows (the parent compounds).
+This will create two new files (e.g., `..._ETP.csv` and `..._parents.csv`) in your project folder.

@@ -24,11 +24,11 @@ from tqdm import tqdm
 
 # 1. Set the main project directory. All other paths will be built from this.
 #    Use an 'r' before the string (e.g., r"C:\...") to handle Windows paths correctly.
-PROJECT_DIRECTORY = Path(r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_Contaminants")
+PROJECT_DIRECTORY = Path(r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_natural_products")
 
 # 2. Filename of the MGF input file. This file must be located inside the
 #    PROJECT_DIRECTORY defined above.
-MGF_FILENAME = "20250917+18_EC_library_merged_pos_20260415.mgf"
+MGF_FILENAME = "20260520_natural_products_curated_parents_pos.mgf"
 
 # 3. Name of the sub-directory containing the MASST result files.
 #    This folder should also be inside your PROJECT_DIRECTORY.
@@ -36,11 +36,11 @@ OUTPUT_SUBDIR = "output"
 
 # 4. The "Output Prefix" used when running the MASST search (e.g., "pos", "neg").
 #    This prefix is part of every MASST output filename.
-OUTPUT_PREFIX = "pos"
+OUTPUT_PREFIX = ""
 
 # 5. Desired filename for the final summary CSV file. This file will be saved
 #    in your PROJECT_DIRECTORY.
-SUMMARY_FILENAME = ("dataset_summary_unique_compounds_pos_2.csv")
+SUMMARY_FILENAME = ("dataset_summary_unique_compounds.csv")
 
 # 6. Precision for rounding mass. This is used to group compounds with slight
 #    mass variations, which is common in mass spectrometry data. A value of 3-4

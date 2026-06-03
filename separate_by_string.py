@@ -2,7 +2,7 @@
 """
 Splits a summary CSV file into two separate files based on a search string.
 
-This script is intended to be run after 'aggregate_MASST_batch_results.py'. It takes a
+This script is intended to be run after 'aggregate_results.py'. It takes a
 CSV file and separates its rows into two new files: one containing rows where
 a specific column includes a given search string (e.g., "_ETP_"), and another
 with the remaining rows.
@@ -22,11 +22,11 @@ import pandas as pd
 
 # 1. Set the main project directory. This should be the same directory used
 #    in the first script.
-PROJECT_DIRECTORY = Path(r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_Contaminants")
+PROJECT_DIRECTORY = Path(r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_natural_products")
 
 # 2. Filename of the input CSV file you want to separate. This should be
 #    one of the summary files created by 'aggregate_results.py'.
-INPUT_CSV_FILENAME = "dataset_summary_unique_compounds_pos_2.csv"
+INPUT_CSV_FILENAME = "dataset_summary_unique_compounds.csv"
 
 # 3. The column to check for the search string.
 #    For this workflow, this will typically be 'Compound Name'.
