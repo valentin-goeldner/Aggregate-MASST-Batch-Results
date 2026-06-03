@@ -22,8 +22,8 @@ OUTPUT_PREFIX = ""
 OUTPUT_CSV_PATH = r"Y:/Data/goeldnerv97/Research/Spectral Library Building/Applications/MASST_Search/20260416_natural_products/dataset_summary_unique_compounds.csv"
 
 # 5. Precision for rounding the exact mass to group similar compounds.
-#    4 decimal places is usually sufficient for high-resolution data.
 MASS_PRECISION = 3
+
 
 # ========================== #
 # ------ SCRIPT LOGIC ------ #
@@ -32,14 +32,13 @@ MASS_PRECISION = 3
 def compile_unique_dataset_counts(mgf_path, output_folder, output_prefix,
     output_csv):
   """
-  Groups compounds by name and exact mass, counts unique matched datasets,
-  and lists all associated _combined.html files. Includes all compounds
-  from the MGF, even those with zero matches.
+  Groups compounds, counts unique datasets and library matches, and lists HTML files.
   """
-  # Dictionary to group dataset IDs by unique compound
+  # Dictionaries to group data by unique compound
   grouped_datasets = defaultdict(list)
-  # **NEW**: Dictionary to group HTML filenames by unique compound
   grouped_html_files = defaultdict(list)
+  grouped_library_matches = defaultdict(list)
+
   # Set to store all unique compounds found in the MGF
   all_unique_compounds = set()
 
@@ -57,7 +56,6 @@ def compile_unique_dataset_counts(mgf_path, output_folder, output_prefix,
       # --- 1. Create a unique key for the compound ---
       compound_name = params.get('name', 'Unknown')
       pepmass_tuple = params.get('pepmass')
-
       if not pepmass_tuple:
         continue
 
@@ -76,21 +74,33 @@ def compile_unique_dataset_counts(mgf_path, output_folder, output_prefix,
         scan_number)
 
       base_filename = f"{output_prefix}_{entry_identifier}"
-      tsv_path = output_folder / f"{base_filename}_datasets.tsv"
-      html_filename = f"{base_filename}_combined.html"
 
-      # --- 3. Add the HTML filename to its group ---
+      # --- 3. Collect data from all relevant files ---
+
+      # Add HTML filename to its group
+      html_filename = f"{base_filename}_combined.html"
       grouped_html_files[compound_key].append(html_filename)
 
-      # --- 4. If a match file exists, add its datasets to the group ---
+      # Add dataset IDs to their group
+      tsv_path = output_folder / f"{base_filename}_datasets.tsv"
       if tsv_path.is_file():
         try:
           df = pd.read_csv(tsv_path, sep='\t')
           if 'Dataset' in df.columns:
-            datasets_for_this_entry = df['Dataset'].tolist()
-            grouped_datasets[compound_key].extend(datasets_for_this_entry)
+            grouped_datasets[compound_key].extend(df['Dataset'].tolist())
         except Exception as e:
           print(f"\nWarning: Could not read file {tsv_path}. Error: {e}")
+
+      # Add library match IDs to their group
+      library_path = output_folder / f"{base_filename}_library.tsv"
+      if library_path.is_file():
+        try:
+          df_lib = pd.read_csv(library_path, sep='\t')
+          if 'USI' in df_lib.columns:
+            grouped_library_matches[compound_key].extend(
+              df_lib['USI'].tolist())
+        except Exception as e:
+          print(f"\nWarning: Could not read file {library_path}. Error: {e}")
 
   if not all_unique_compounds:
     print("No compounds found in MGF file. Exiting.")
@@ -99,25 +109,26 @@ def compile_unique_dataset_counts(mgf_path, output_folder, output_prefix,
   print("\n--- Phase 2: Aggregating results for ALL unique compounds ---")
 
   final_results = []
-  # --- 5. Iterate over ALL unique compounds to build the final table ---
   for name, mass in tqdm(sorted(list(all_unique_compounds)),
                          desc="Aggregating groups"):
     compound_key = (name, mass)
 
     # Get the unique dataset count
-    all_datasets_for_compound = grouped_datasets.get(compound_key, [])
-    unique_count = len(set(all_datasets_for_compound))
+    unique_dataset_count = len(set(grouped_datasets.get(compound_key, [])))
 
-    # **NEW**: Get the list of all associated HTML files
-    html_files_list = grouped_html_files.get(compound_key, [])
-    # Join them into a single string for the CSV cell
-    html_files_string = ", ".join(html_files_list)
+    # **NEW**: Get the unique library match count
+    unique_library_count = len(
+      set(grouped_library_matches.get(compound_key, [])))
+
+    # Get the list of all associated HTML files
+    html_files_string = ", ".join(grouped_html_files.get(compound_key, []))
 
     final_results.append({
       'Compound Name': name,
       'Exact Mass': mass,
-      'Unique Matched Datasets': unique_count,
-      'Associated HTML Files': html_files_string  # The new column
+      'Unique Matched Datasets': unique_dataset_count,
+      'Unique Library Matches': unique_library_count,  # The new column
+      'Associated HTML Files': html_files_string
     })
 
   # --- 6. Create and save the final summary CSV ---
