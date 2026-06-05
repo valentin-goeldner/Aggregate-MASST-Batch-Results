@@ -27,13 +27,13 @@ from tqdm import tqdm
 
 # 1. Set the main project directory.
 PROJECT_DIRECTORY = Path(
-  r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_natural_products")
+  r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_Contaminants")
 
 # 2. Filename of the MGF input file, located inside the PROJECT_DIRECTORY.
-MGF_FILENAME = "20260520_natural_products_curated_parents_pos.mgf"
+MGF_FILENAME = "20250917+18_EC_library_merged_neg_20260605.mgf"
 
 # 3. Name of the sub-directory containing the MASST result files.
-OUTPUT_SUBDIR = "output"
+OUTPUT_SUBDIR = "20260605_output"
 
 # 4. The full, absolute path to the comprehensive Pan-ReDu database file.
 #    This file can be located anywhere on your system.
@@ -41,13 +41,10 @@ PAN_REDU_DB_PATH = Path(
   r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\ReDu\all_sampleinformation.tsv")
 
 # 5. The "Output Prefix" used when running the MASST search.
-OUTPUT_PREFIX = ""
+OUTPUT_PREFIX = "neg"
 
 # 6. Desired filename for the final summary CSV file.
-SUMMARY_FILENAME = "Pan_ReDU_metadata_summary.csv"
-
-# 7. Precision for rounding mass to group compounds.
-MASS_PRECISION = 3
+SUMMARY_FILENAME = "Pan_ReDU_metadata_summary_neg.csv"
 
 # 8. List of sample types to create columns for in the final output.
 SAMPLE_TYPES_OF_INTEREST = [
@@ -99,7 +96,7 @@ def process_usi_to_datafile(usi: str) -> str:
 
 
 def compile_metadata_from_matches(mgf_path, output_folder, db_lookup,
-    output_prefix, output_csv, mass_precision):
+    output_prefix, output_csv):
   """Main function to aggregate unique USIs, retrieve metadata, and count sample types."""
   grouped_usis = defaultdict(set)
   all_unique_compounds = set()
@@ -114,8 +111,8 @@ def compile_metadata_from_matches(mgf_path, output_folder, db_lookup,
       if not pepmass_tuple or not scan_number:
         continue
 
-      rounded_mass = round(float(pepmass_tuple[0]), mass_precision)
-      compound_key = (compound_name, rounded_mass)
+      formula = params.get('formula')
+      compound_key = (compound_name, formula)
       all_unique_compounds.add(compound_key)
 
       spectrum_id = params.get('spectrumid')
@@ -136,9 +133,9 @@ def compile_metadata_from_matches(mgf_path, output_folder, db_lookup,
 
   print("\n--- Phase 2: Aggregating metadata for unique compounds ---")
   final_results = []
-  for name, mass in tqdm(sorted(list(all_unique_compounds)),
+  for name, formula in tqdm(sorted(list(all_unique_compounds)),
                          desc="Aggregating metadata"):
-    compound_key = (name, mass)
+    compound_key = (name, formula)
     raw_usis = grouped_usis.get(compound_key, set())
     unique_datafiles = {process_usi_to_datafile(usi) for usi in raw_usis}
 
@@ -150,7 +147,7 @@ def compile_metadata_from_matches(mgf_path, output_folder, db_lookup,
     # Initialize a dictionary for the row with base info and all sample types set to 0
     row_data = {
       'Compound Name': name,
-      'Exact Mass': mass,
+      'Molecular Formula': formula,
       'Total Unique Datafiles': len(unique_datafiles)
     }
     row_data.update({stype: 0 for stype in SAMPLE_TYPES_OF_INTEREST})
@@ -163,12 +160,12 @@ def compile_metadata_from_matches(mgf_path, output_folder, db_lookup,
   final_df = pd.DataFrame(final_results)
 
   # Reorder columns for clarity: base info first, then sorted sample types
-  first_cols = ['Compound Name', 'Exact Mass', 'Total Unique Datafiles']
+  first_cols = ['Compound Name', 'Molecular Formula', 'Total Unique Datafiles']
   # Ensure all desired sample type columns are present, even if none were found
   all_cols = first_cols + sorted(SAMPLE_TYPES_OF_INTEREST)
   final_df = final_df[all_cols]
 
-  final_df.sort_values(by=['Compound Name', 'Exact Mass'], inplace=True)
+  final_df.sort_values(by=['Compound Name', 'Molecular Formula'], inplace=True)
   final_df.to_csv(output_csv, index=False)
 
   print(f"\n--- Compilation Complete! ---")
@@ -183,5 +180,4 @@ if __name__ == "__main__":
       db_map,
       OUTPUT_PREFIX,
       OUTPUT_CSV_PATH,
-      MASS_PRECISION
   )

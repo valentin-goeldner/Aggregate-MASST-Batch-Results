@@ -28,24 +28,19 @@ PROJECT_DIRECTORY = Path(r"Y:\Data\goeldnerv97\Research\Spectral Library Buildin
 
 # 2. Filename of the MGF input file. This file must be located inside the
 #    PROJECT_DIRECTORY defined above.
-MGF_FILENAME = "20260520_natural_products_curated_parents_pos.mgf"
+MGF_FILENAME = "20260605_natural_products_curated_parents_pos.mgf"
 
 # 3. Name of the sub-directory containing the MASST result files.
 #    This folder should also be inside your PROJECT_DIRECTORY.
-OUTPUT_SUBDIR = "output"
+OUTPUT_SUBDIR = "20260605_output"
 
 # 4. The "Output Prefix" used when running the MASST search (e.g., "pos", "neg").
 #    This prefix is part of every MASST output filename.
-OUTPUT_PREFIX = ""
+OUTPUT_PREFIX = "np"
 
 # 5. Desired filename for the final summary CSV file. This file will be saved
 #    in your PROJECT_DIRECTORY.
-SUMMARY_FILENAME = ("dataset_summary_unique_compounds.csv")
-
-# 6. Precision for rounding mass. This is used to group compounds with slight
-#    mass variations, which is common in mass spectrometry data. A value of 3-4
-#    is recommended for high-resolution data.
-MASS_PRECISION = 3
+SUMMARY_FILENAME = ("20260605_dataset_summary_unique_compounds_np.csv")
 
 # ========================================================================= #
 # ---         SCRIPT LOGIC (No modifications needed below here)         --- #
@@ -58,7 +53,7 @@ OUTPUT_CSV_PATH = PROJECT_DIRECTORY / SUMMARY_FILENAME
 
 
 def compile_masst_results(mgf_path: Path, output_folder: Path, output_prefix: str,
-                          output_csv: Path, mass_precision: int):
+                          output_csv: Path):
     """
     Aggregates MASST search results for all spectra in an MGF file.
     """
@@ -90,10 +85,9 @@ def compile_masst_results(mgf_path: Path, output_folder: Path, output_prefix: st
             if not pepmass_tuple or not scan_number:
                 continue
 
-            # Define a unique identifier for the compound based on its name and mass
-            exact_mass = float(pepmass_tuple[0])
-            rounded_mass = round(exact_mass, mass_precision)
-            compound_key = (compound_name, rounded_mass)
+            # Define a unique identifier for the compound based on its name and formula
+            formula = params.get('formula')
+            compound_key = (compound_name, formula)
             all_unique_compounds.add(compound_key)
 
             # Construct the base filename for this spectrum's output files
@@ -131,8 +125,8 @@ def compile_masst_results(mgf_path: Path, output_folder: Path, output_prefix: st
 
     final_results = []
     # Iterate through a sorted list of compounds for reproducible output
-    for name, mass in tqdm(sorted(list(all_unique_compounds)), desc="Aggregating results"):
-        compound_key = (name, mass)
+    for name, formula in tqdm(sorted(list(all_unique_compounds)), desc="Aggregating results"):
+        compound_key = (name, formula)
 
         # Calculate unique counts by converting lists to sets
         unique_dataset_count = len(set(grouped_datasets.get(compound_key, [])))
@@ -141,7 +135,7 @@ def compile_masst_results(mgf_path: Path, output_folder: Path, output_prefix: st
 
         final_results.append({
             'Compound Name': name,
-            'Exact Mass': mass,
+            'Molecular Formula': formula,
             'Unique Matched Datasets': unique_dataset_count,
             'Unique Library Matches': unique_library_count,
             'Associated HTML Files': html_files_string
@@ -153,7 +147,7 @@ def compile_masst_results(mgf_path: Path, output_folder: Path, output_prefix: st
 
     # Create and save the final summary DataFrame
     final_df = pd.DataFrame(final_results)
-    final_df.sort_values(by=['Compound Name', 'Exact Mass'], inplace=True)
+    final_df.sort_values(by=['Compound Name', 'Molecular Formula'], inplace=True)
     final_df.to_csv(output_csv, index=False)
 
     print("\n--- Compilation Complete! ---")
@@ -169,5 +163,4 @@ if __name__ == "__main__":
         output_folder=OUTPUT_FOLDER_PATH,
         output_prefix=OUTPUT_PREFIX,
         output_csv=OUTPUT_CSV_PATH,
-        mass_precision=MASS_PRECISION
     )
