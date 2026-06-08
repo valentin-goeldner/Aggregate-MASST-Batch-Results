@@ -40,7 +40,7 @@ OUTPUT_PREFIX = "np"
 
 # 5. Desired filename for the final summary CSV file. This file will be saved
 #    in your PROJECT_DIRECTORY.
-SUMMARY_FILENAME = ("20260605_dataset_summary_unique_compounds_np.csv")
+SUMMARY_FILENAME = ("20260605_dataset_summary_unique_compounds_incl_libraries_np.csv")
 
 # ========================================================================= #
 # ---         SCRIPT LOGIC (No modifications needed below here)         --- #
@@ -69,6 +69,7 @@ def compile_masst_results(mgf_path: Path, output_folder: Path, output_prefix: st
     grouped_datasets = defaultdict(list)
     grouped_html_files = defaultdict(list)
     grouped_library_matches = defaultdict(list)
+    grouped_top_library_hits = defaultdict(list)
     all_unique_compounds = set()
 
     print(f"Reading spectra from: {mgf_path}")
@@ -107,15 +108,37 @@ def compile_masst_results(mgf_path: Path, output_folder: Path, output_prefix: st
                 except Exception as e:
                     print(f"\nWarning: Could not process file {tsv_path}. Error: {e}")
 
-            # Parse the _library.tsv file for library spectra matches
+            # Parse _library.tsv for both total matches and top 3 hits.
             library_path = output_folder / f"{base_filename}_library.tsv"
             if library_path.is_file():
                 try:
                     df_lib = pd.read_csv(library_path, sep='\t')
+                    # Get total unique library spectra count
                     if 'USI' in df_lib.columns:
-                        grouped_library_matches[compound_key].extend(df_lib['USI'].tolist())
+                        grouped_library_matches[compound_key].extend(
+                            df_lib['USI'].tolist())
+
+                    # Extract top 3 hits based on Cosine score
+                    if 'Cosine' in df_lib.columns and 'CompoundName' in df_lib.columns:
+                        # Ensure Cosine is numeric before sorting
+                        df_lib['Cosine'] = pd.to_numeric(
+                            df_lib['Cosine'], errors='coerce')
+                        df_lib.dropna(subset=['Cosine'], inplace=True)
+
+                        top_hits_df = df_lib.sort_values(by='Cosine',
+                                                         ascending=False).head(
+                            3)
+
+                        # Store as a list of (cosine, name) tuples
+                        hits_tuples = list(zip(top_hits_df['Cosine'],
+                                               top_hits_df[
+                                                   'CompoundName']))
+                        grouped_top_library_hits[compound_key].extend(
+                            hits_tuples)
+
                 except Exception as e:
-                    print(f"\nWarning: Could not process file {library_path}. Error: {e}")
+                    print(
+                        f"\nWarning: Could not process file {library_path}. Error: {e}")
 
     if not all_unique_compounds:
         print("Error: No valid compounds found in the MGF file. Exiting.")
@@ -133,11 +156,26 @@ def compile_masst_results(mgf_path: Path, output_folder: Path, output_prefix: st
         unique_library_count = len(set(grouped_library_matches.get(compound_key, [])))
         html_files_string = ", ".join(sorted(set(grouped_html_files.get(compound_key, []))))
 
+        # Process and format the top 3 library hits for the summary
+        all_compound_hits = grouped_top_library_hits.get(compound_key, [])
+        # Get unique hits, then sort by cosine score (descending)
+        # The key=lambda item: item[0] sorts by the first element of the tuple (cosine)
+        unique_top_hits = sorted(list(set(all_compound_hits)), key=lambda item: item[0], reverse=True)
+
+        # Prepare the top 3 match strings, with '-' as a default placeholder
+        top_matches_formatted = ["-", "-", "-"]
+        for i in range(min(len(unique_top_hits), 3)):
+            cosine, compound_name = unique_top_hits[i]
+            top_matches_formatted[i] = f"{compound_name} (Cosine: {cosine:.3f})"
+
         final_results.append({
             'Compound Name': name,
             'Molecular Formula': formula,
             'Unique Matched Datasets': unique_dataset_count,
             'Unique Library Matches': unique_library_count,
+            'Top Library Match 1': top_matches_formatted[0],
+            'Top Library Match 2': top_matches_formatted[1],
+            'Top Library Match 3': top_matches_formatted[2],
             'Associated HTML Files': html_files_string
         })
 
@@ -145,8 +183,16 @@ def compile_masst_results(mgf_path: Path, output_folder: Path, output_prefix: st
         print("Warning: No results were aggregated. The output file will be empty.")
         return
 
+    # Define column order to ensure new columns are placed logically
+    column_order = [
+        'Compound Name', 'Molecular Formula', 'Unique Matched Datasets',
+        'Unique Library Matches', 'Top Library Match 1', 'Top Library Match 2',
+        'Top Library Match 3', 'Associated HTML Files'
+    ]
+
     # Create and save the final summary DataFrame
     final_df = pd.DataFrame(final_results)
+    final_df = final_df[column_order]
     final_df.sort_values(by=['Compound Name', 'Molecular Formula'], inplace=True)
     final_df.to_csv(output_csv, index=False)
 
