@@ -22,11 +22,11 @@ import pandas as pd
 
 # 1. Set the main project directory. This should be the same directory used
 #    in the first script.
-PROJECT_DIRECTORY = Path(r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_natural_products")
+PROJECT_DIRECTORY = Path(r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_Contaminants")
 
 # 2. Filename of the input CSV file you want to separate. This should be
 #    one of the summary files created by 'aggregate_results.py'.
-INPUT_CSV_FILENAME = "20260608_dataset_summary_unique_compounds_incl_libraries_np.csv"
+INPUT_CSV_FILENAME = "Pan_ReDU_metadata_summary_pos.csv"
 
 # 3. The column to check for the search string.
 #    For this workflow, this will typically be 'Compound Name'.

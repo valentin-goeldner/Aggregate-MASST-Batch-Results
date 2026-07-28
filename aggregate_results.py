@@ -2,7 +2,7 @@
 Aggregates MASST search results into a single summary file.
 
 This script processes the output of a MASST search by grouping results for
-unique compounds (defined by name and precursor mass). It computes summary
+unique compounds (defined by name and formula). It computes summary
 statistics, such as the number of unique public datasets and library spectra
 matched.
 
