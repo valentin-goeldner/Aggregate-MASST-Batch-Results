@@ -2,7 +2,7 @@
 Aggregates MASST search results into a single summary file.
 
 This script processes the output of a MASST search by grouping results for
-unique compounds (defined by name and formula). It computes summary
+unique compounds (defined by a normalized name and formula). It computes summary
 statistics, such as the number of unique public datasets and library spectra
 matched.
 
@@ -13,6 +13,7 @@ below, then run the file directly from your IDE or terminal.
 from collections import defaultdict
 from pathlib import Path
 import sys
+import re
 import pandas as pd
 from pyteomics.mgf import MGF
 from tqdm import tqdm
@@ -24,11 +25,11 @@ from tqdm import tqdm
 
 # 1. Set the main project directory. All other paths will be built from this.
 #    Use an 'r' before the string (e.g., r"C:\...") to handle Windows paths correctly.
-PROJECT_DIRECTORY = Path(r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_natural_products")
+PROJECT_DIRECTORY = Path(r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_contaminants")
 
 # 2. Filename of the MGF input file. This file must be located inside the
 #    PROJECT_DIRECTORY defined above.
-MGF_FILENAME = "20260605_natural_products_curated_parents_pos.mgf"
+MGF_FILENAME = "20250917+18_EC_library_merged_neg_20260605.mgf"
 
 # 3. Name of the sub-directory containing the MASST result files.
 #    This folder should also be inside your PROJECT_DIRECTORY.
@@ -36,11 +37,11 @@ OUTPUT_SUBDIR = "20260605_output"
 
 # 4. The "Output Prefix" used when running the MASST search (e.g., "pos", "neg").
 #    This prefix is part of every MASST output filename.
-OUTPUT_PREFIX = "np"
+OUTPUT_PREFIX = "neg"
 
 # 5. Desired filename for the final summary CSV file. This file will be saved
 #    in your PROJECT_DIRECTORY.
-SUMMARY_FILENAME = ("20260605_dataset_summary_unique_compounds_incl_libraries_np.csv")
+SUMMARY_FILENAME = ("20260728_MassIVE_Datasets_Contaminants_neg.csv")
 
 # ========================================================================= #
 # ---         SCRIPT LOGIC (No modifications needed below here)         --- #
@@ -51,6 +52,26 @@ MGF_FILE_PATH = PROJECT_DIRECTORY / MGF_FILENAME
 OUTPUT_FOLDER_PATH = PROJECT_DIRECTORY / OUTPUT_SUBDIR
 OUTPUT_CSV_PATH = PROJECT_DIRECTORY / SUMMARY_FILENAME
 
+def normalize_etp_name(name: str) -> str:
+    """
+    Normalizes a compound name by applying specific cleaning rules.
+
+    - Removes the suffix " (Chimeric precursor selection)" from any name.
+    - For names containing '_ETP_', it also removes a trailing letter (b-z)
+      if it follows a digit (e.g., 'MyETP_123b' -> 'MyETP_123').
+    - Parent compounds without '_ETP_' are not affected by the ETP-specific rule.
+    """
+    if not isinstance(name, str):
+        return name
+
+    # Rule 1: Remove the chimeric precursor appendix from all names.
+    name = name.replace(" (Chimeric precursor selection)", "")
+
+    # Rule 2: Apply ETP-specific logic to the already-cleaned name.
+    if '_ETP_' in name:
+        name = re.sub(r"(?<=\d)[b-z]$", "", name)
+
+    return name
 
 def compile_masst_results(mgf_path: Path, output_folder: Path, output_prefix: str,
                           output_csv: Path):
@@ -86,9 +107,12 @@ def compile_masst_results(mgf_path: Path, output_folder: Path, output_prefix: st
             if not pepmass_tuple or not scan_number:
                 continue
 
-            # Define a unique identifier for the compound based on its name and formula
+            # Normalize the name before creating the key
+            normalized_name = normalize_etp_name(compound_name)
+
+            # Define a unique identifier for the compound based on its normalized name and formula
             formula = params.get('formula')
-            compound_key = (compound_name, formula)
+            compound_key = (normalized_name, formula)
             all_unique_compounds.add(compound_key)
 
             # Construct the base filename for this spectrum's output files
