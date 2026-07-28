@@ -41,7 +41,7 @@ OUTPUT_PREFIX = "neg"
 
 # 5. Desired filename for the final summary CSV file. This file will be saved
 #    in your PROJECT_DIRECTORY.
-SUMMARY_FILENAME = ("20260728_MassIVE_Datasets_Contaminants_neg.csv")
+SUMMARY_FILENAME = "20260728_MassIVE_Datasets_Contaminants_neg.csv"
 
 # ========================================================================= #
 # ---         SCRIPT LOGIC (No modifications needed below here)         --- #
