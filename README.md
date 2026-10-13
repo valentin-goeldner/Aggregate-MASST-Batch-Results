@@ -3,8 +3,7 @@
 This project contains a suite of Python scripts for processing and analyzing results from a [MASST](https://github.com/mwang87/MASST) search.
 
 1.  **`aggregate_results.py`**: A basic aggregator that counts the number of unique datasets and library spectra matched for each compound.
-2.  **`summarize_pan_redu.py`**: An advanced aggregator that maps MASST matches against the Pan-ReDu database to profile the sample types (e.g., plant, animal, microbial) where each compound was found.
-3.  **`separate_by_string.py`**: A general utility to split any of the generated summary CSV files based on a string in a column (e.g., separating parent compounds from transformation products).
+2.  **`separate_by_string.py`**: A general utility to split any of the generated summary CSV files based on a string in a column (e.g., separating parent compounds from transformation products).
 
 ## Requirements
 
@@ -29,8 +28,7 @@ A consistent project structure is recommended for the scripts to work seamlessly
 │   ├── pos_1_..._matches.tsv
 │   └── ...
 ├── aggregate_results.py          <-- Script 1
-├── summarize_pan_redu.py         <-- Script 2
-├── separate_by_string.py         <-- Script 3
+├── separate_by_string.py         <-- Script 2
 └── requirements.txt
 ```
 
@@ -47,7 +45,7 @@ Open `aggregate_results.py` and edit its configuration section.
 ```python
 # --- USER CONFIGURATION --- #
 PROJECT_DIRECTORY = r"C:\path\to\your\project_folder"
-MGF_FILENAME = "library_pos_mode.mgf"
+MGF_FILENAME = "input_filename.mgf"
 # ... and other settings ...
 ```
 #### Run
@@ -55,25 +53,7 @@ Run the script from your IDE or terminal: `python aggregate_results.py`
 
 ---
 
-### Tool 2: Pan-ReDu Metadata Summary (`summarize_pan_redu.py`)
-
-This script provides a detailed profile of where your compounds are found across different biological and environmental sample types. **It specifically uses the `_matches.tsv` files.**
-
-#### Configuration
-Open `summarize_pan_redu.py` and edit its configuration. You must provide a path to the Pan-ReDu database file (`all_sampleinformation.tsv`).
-```python
-# --- USER CONFIGURATION --- #
-PROJECT_DIRECTORY = r"C:\path\to\your\project_folder"
-MGF_FILENAME = "library_pos_mode.mgf"
-PAN_REDU_DB_PATH = r"D:\Databases\ReDu\all_sampleinformation.tsv"
-# ... and other settings ...
-```
-#### Run
-Run the script from your IDE or terminal: `python summarize_pan_redu.py`
-
----
-
-### Tool 3: Splitting CSV by String (`separate_by_string.py`)
+### Tool 2: Splitting CSV by String (`separate_by_string.py`)
 
 This is a general utility script that can be run on the output CSV from **either** of the tools above. It is useful for separating entries based on tags in their names, like `_ETP_` for transformation products.
 

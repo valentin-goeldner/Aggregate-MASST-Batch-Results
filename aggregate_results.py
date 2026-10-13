@@ -25,23 +25,23 @@ from tqdm import tqdm
 
 # 1. Set the main project directory. All other paths will be built from this.
 #    Use an 'r' before the string (e.g., r"C:\...") to handle Windows paths correctly.
-PROJECT_DIRECTORY = Path(r"Y:\Data\goeldnerv97\Research\Spectral Library Building\Applications\MASST_Search\20260416_contaminants")
+PROJECT_DIRECTORY = Path(r"C:\path\to\your\project_folder")
 
 # 2. Filename of the MGF input file. This file must be located inside the
 #    PROJECT_DIRECTORY defined above.
-MGF_FILENAME = "20250917+18_EC_library_merged_neg_20260605.mgf"
+MGF_FILENAME = "input_filename.mgf"
 
 # 3. Name of the sub-directory containing the MASST result files.
 #    This folder should also be inside your PROJECT_DIRECTORY.
-OUTPUT_SUBDIR = "20260605_output"
+OUTPUT_SUBDIR = "output_subdirectory"
 
 # 4. The "Output Prefix" used when running the MASST search (e.g., "pos", "neg").
 #    This prefix is part of every MASST output filename.
-OUTPUT_PREFIX = "neg"
+OUTPUT_PREFIX = "pos"
 
 # 5. Desired filename for the final summary CSV file. This file will be saved
 #    in your PROJECT_DIRECTORY.
-SUMMARY_FILENAME = "20260728_MassIVE_Datasets_Contaminants_neg.csv"
+SUMMARY_FILENAME = "intended_output_filename.csv"
 
 # ========================================================================= #
 # ---         SCRIPT LOGIC (No modifications needed below here)         --- #
@@ -58,7 +58,7 @@ def normalize_etp_name(name: str) -> str:
 
     - Removes the suffix " (Chimeric precursor selection)" from any name.
     - For names containing '_ETP_', it also removes a trailing letter (b-z)
-      if it follows a digit (e.g., 'MyETP_123b' -> 'MyETP_123').
+      if it follows a digit (e.g., 'My_ETP_123b' -> 'My_ETP_123').
     - Parent compounds without '_ETP_' are not affected by the ETP-specific rule.
     """
     if not isinstance(name, str):
